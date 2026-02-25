@@ -61,6 +61,53 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+st.markdown("""
+## Welcome to ElectionIQ
+
+Every four years, billions of dollars are spent trying to answer one question:
+**who is going to win?** Campaigns pour resources into swing states, pollsters
+survey thousands of voters, and analysts build ever-more-complex models — yet
+elections still surprise us.
+
+ElectionIQ takes a different approach. Instead of asking *who people say they'll
+vote for*, we ask: **can the demographics of a county alone tell us how it will vote?**
+
+Using US Census data alongside county-level results from the 2016 and 2020
+presidential elections, we built a linear regression model that predicts the
+Republican vote share of any US county based on socioeconomic indicators —
+income, poverty rate, racial composition, employment sector, and more.
+
+---
+
+### 📦 The Data
+
+Our analysis draws on three datasets:
+
+- **County Statistics** — 4,800+ US counties with voting results from 2016 and
+  2020 merged with US Census demographics (income, race, employment, poverty)
+- **Trump–Biden Polls (2020)** — state-level polling averages from FiveThirtyEight,
+  covering pollster grades, sample sizes, and methodology
+- **Trump–Clinton Polls (2016)** — equivalent polling data from the 2016 race,
+  allowing us to study how polling accuracy and voter sentiment shifted across cycles
+
+All datasets are publicly available — county voting data from the MIT Election Lab,
+demographic data from the US Census Bureau, and polling data from FiveThirtyEight.
+
+---
+
+### 🔬 Our Approach
+
+We treat this as a **supervised regression problem**. The target variable is the
+Republican presidential vote share at county level. Our features are purely
+socioeconomic — no prior vote history, no polling data — to test how much
+demographics alone can explain electoral outcomes.
+
+We use **Ordinary Least Squares Linear Regression** for its interpretability:
+every coefficient has a clear meaning, making it easy to explain *why* the model
+predicts what it does. This matters in a political context where understanding
+the drivers is just as valuable as the prediction itself.
+""")
+
 # ── Data loading ──────────────────────────────────────────────────────────────
 @st.cache_data
 def load_data():
