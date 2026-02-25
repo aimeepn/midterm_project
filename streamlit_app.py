@@ -422,6 +422,142 @@ elif page == "📊 Data Visualization":
     fig.tight_layout()
     st.pyplot(fig)
 
+    # ── Chart 7: 2016 vs 2020 side-by-side state comparison ──────────────────────
+st.markdown('<div class="sec-title">7 · Republican Vote Share by State: 2016 vs 2020</div>',
+            unsafe_allow_html=True)
+
+state_votes = (df.groupby('state')[['percentage16_Donald_Trump', 'percentage20_Donald_Trump']]
+                 .mean()
+                 .reset_index()
+                 .sort_values('percentage20_Donald_Trump', ascending=True)
+                 .tail(20))
+
+x = np.arange(len(state_votes))
+width = 0.35
+
+fig, ax = plt.subplots(figsize=(12, 6))
+ax.barh(x - width/2, state_votes['percentage16_Donald_Trump'], width,
+        label='2016', color=REP_RED, alpha=0.6, edgecolor='white')
+ax.barh(x + width/2, state_votes['percentage20_Donald_Trump'], width,
+        label='2020', color=REP_RED, alpha=0.95, edgecolor='white')
+ax.set_yticks(x)
+ax.set_yticklabels(state_votes['state'], fontsize=10)
+ax.axvline(0.5, color='black', linestyle='--', linewidth=1.2)
+ax.set_xlabel("Average County-Level Republican Share", fontsize=12)
+ax.set_title("Top 20 States · 2016 vs 2020 Republican Vote Share", fontsize=14, fontweight='bold')
+ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x:.0%}"))
+ax.legend(fontsize=11)
+fig.tight_layout()
+st.pyplot(fig)
+
+st.markdown("""
+Most states held steady between 2016 and 2020 at the county level, but you can
+spot where Republicans gained (bars shift right) or lost ground (bars shift left).
+""")
+
+
+# ── Chart 8: Top 10 most & least Republican counties ─────────────────────────
+st.markdown('<div class="sec-title">8 · Most & Least Republican Counties (2020)</div>',
+            unsafe_allow_html=True)
+
+top10    = df.nlargest(10, 'percentage20_Donald_Trump')[['county', 'state', 'percentage20_Donald_Trump']]
+bottom10 = df.nsmallest(10, 'percentage20_Donald_Trump')[['county', 'state', 'percentage20_Donald_Trump']]
+top10['label']    = top10['county'] + ', ' + top10['state']
+bottom10['label'] = bottom10['county'] + ', ' + bottom10['state']
+
+col1, col2 = st.columns(2)
+
+with col1:
+    fig, ax = plt.subplots(figsize=(6, 5))
+    ax.barh(top10['label'], top10['percentage20_Donald_Trump'],
+            color=REP_RED, edgecolor='white', alpha=0.88)
+    ax.set_xlim(0, 1)
+    ax.set_xlabel("Trump Vote Share", fontsize=11)
+    ax.set_title("🔴 Top 10 Most Republican", fontsize=13, fontweight='bold')
+    ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x:.0%}"))
+    for i, v in enumerate(top10['percentage20_Donald_Trump']):
+        ax.text(v - 0.02, i, f"{v:.1%}", va='center', ha='right',
+                color='white', fontsize=9, fontweight='bold')
+    fig.tight_layout()
+    st.pyplot(fig)
+
+with col2:
+    fig, ax = plt.subplots(figsize=(6, 5))
+    ax.barh(bottom10['label'], bottom10['percentage20_Donald_Trump'],
+            color=DEM_BLUE, edgecolor='white', alpha=0.88)
+    ax.set_xlim(0, 1)
+    ax.set_xlabel("Trump Vote Share", fontsize=11)
+    ax.set_title("🔵 Top 10 Most Democratic", fontsize=13, fontweight='bold')
+    ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x:.0%}"))
+    for i, v in enumerate(bottom10['percentage20_Donald_Trump']):
+        ax.text(v + 0.01, i, f"{v:.1%}", va='center',
+                color='black', fontsize=9, fontweight='bold')
+    fig.tight_layout()
+    st.pyplot(fig)
+
+st.markdown("""
+The most Republican counties are concentrated in rural Plains and Appalachian states.
+The most Democratic are major urban counties — DC, Manhattan, and large city cores.
+""")
+
+
+# ── Chart 9: Poll accuracy — final polls vs actual result ─────────────────────
+st.markdown('<div class="sec-title">9 · Poll Accuracy: Final Polls vs Actual Result (2020)</div>',
+            unsafe_allow_html=True)
+
+# Get the final pre-election poll per state for Trump
+trump_polls = polls_biden[polls_biden['candidate_name'].str.contains('Trump', na=False)].copy()
+trump_polls['end_date'] = pd.to_datetime(trump_polls['end_date'], errors='coerce')
+final_polls = (trump_polls.sort_values('end_date')
+                          .groupby('state')['pct']
+                          .last()
+                          .reset_index()
+                          .rename(columns={'pct': 'polled_pct'}))
+
+# Actual state-level result from county data (population-weighted average)
+actual = (df.groupby('state')
+            .apply(lambda g: np.average(g['percentage20_Donald_Trump'],
+                                        weights=g['total_votes20']))
+            .reset_index()
+            .rename(columns={0: 'actual_pct'}))
+actual['actual_pct'] = actual['actual_pct'] * 100  # match poll scale (0–100)
+
+poll_vs_actual = final_polls.merge(actual, on='state').dropna()
+poll_vs_actual['error'] = poll_vs_actual['polled_pct'] - poll_vs_actual['actual_pct']
+poll_vs_actual = poll_vs_actual.sort_values('error')
+
+col1, col2 = st.columns([3, 2])
+
+with col1:
+    fig, ax = plt.subplots(figsize=(8, 6))
+    colors = [REP_RED if e > 0 else DEM_BLUE for e in poll_vs_actual['error']]
+    ax.barh(poll_vs_actual['state'], poll_vs_actual['error'],
+            color=colors, edgecolor='white', alpha=0.88)
+    ax.axvline(0, color='black', linewidth=1.5)
+    ax.set_xlabel("Poll Error (Polled % − Actual %)", fontsize=12)
+    ax.set_title("Where Did the Polls Over/Under-estimate Trump?", fontsize=13, fontweight='bold')
+    fig.tight_layout()
+    st.pyplot(fig)
+
+with col2:
+    avg_err = poll_vs_actual['error'].mean()
+    mae_polls = poll_vs_actual['error'].abs().mean()
+    overestimated = (poll_vs_actual['error'] < 0).sum()
+    underestimated = (poll_vs_actual['error'] > 0).sum()
+
+    st.markdown(f"""
+    **Key Insight**
+
+    In 2020, polls **systematically underestimated** Trump's support —
+    the classic "shy Trump voter" effect.
+
+    🔴 **Red bars** = polls underestimated Trump (actual > polled)  
+    🔵 **Blue bars** = polls overestimated Trump (actual < polled)
+    """)
+    st.metric("Avg Poll Error", f"{avg_err:+.1f} pp")
+    st.metric("Mean Absolute Error", f"{mae_polls:.1f} pp")
+    st.metric("States polls underestimated Trump", f"{underestimated}")
+    st.metric("States polls overestimated Trump", f"{overestimated}")
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # PAGE 3 – Prediction Model
