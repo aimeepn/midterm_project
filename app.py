@@ -10,7 +10,7 @@ from sklearn.preprocessing import StandardScaler
 import warnings
 warnings.filterwarnings("ignore")
 
-# ── Page config ──────────────────────────────────────────────────────────────
+# ── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="ElectionIQ · Predicting the Vote",
     page_icon="🗳️",
@@ -19,15 +19,13 @@ st.set_page_config(
 )
 
 # ── Colour palette ────────────────────────────────────────────────────────────
-DEM_BLUE  = "#1a6fb5"
-REP_RED   = "#c0392b"
-NEUTRAL   = "#6c757d"
-BG_LIGHT  = "#f8f9fa"
+DEM_BLUE = "#1a6fb5"
+REP_RED  = "#c0392b"
+NEUTRAL  = "#6c757d"
 
 # ── Custom CSS ────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
-/* Header banner */
 .hero {
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
     border-radius: 12px;
@@ -35,10 +33,9 @@ st.markdown("""
     margin-bottom: 28px;
     color: white;
 }
-.hero h1 { font-size: 2.6rem; font-weight: 800; margin:0; letter-spacing: -1px; }
+.hero h1 { font-size: 2.6rem; font-weight: 800; margin: 0; letter-spacing: -1px; }
 .hero p  { font-size: 1.15rem; opacity: 0.82; margin-top: 8px; }
 
-/* Metric cards */
 .card {
     background: white;
     border-radius: 10px;
@@ -50,7 +47,6 @@ st.markdown("""
 .card.red  { border-color: #c0392b; }
 .card.gray { border-color: #6c757d; }
 
-/* Section titles */
 .sec-title {
     font-size: 1.5rem;
     font-weight: 700;
@@ -60,28 +56,23 @@ st.markdown("""
     margin-bottom: 20px;
 }
 
-/* Sidebar */
 [data-testid="stSidebar"] { background: #1a1a2e !important; }
 [data-testid="stSidebar"] * { color: white !important; }
-[data-testid="stSidebar"] .st-emotion-cache-6qob1r { color: #aaa !important; }
 </style>
 """, unsafe_allow_html=True)
 
 # ── Data loading ──────────────────────────────────────────────────────────────
 @st.cache_data
 def load_data():
-    county = pd.read_csv("county_statistics.csv")
-    polls_biden = pd.read_csv("trump_biden_polls.csv")
+    county     = pd.read_csv("county_statistics.csv")
+    polls_biden   = pd.read_csv("trump_biden_polls.csv")
     polls_clinton = pd.read_csv("trump_clinton_polls.csv")
-    nc = pd.read_csv("North_Carolina_Election_Data_-_North_Carolina_2024.csv")
-    return county, polls_biden, polls_clinton, nc
+    return county, polls_biden, polls_clinton
 
 try:
-    county_df, polls_biden, polls_clinton, nc_df = load_data()
-    data_ok = True
+    county_df, polls_biden, polls_clinton = load_data()
 except Exception as e:
-    st.error(f"Could not load data files. Make sure CSVs are in the same folder. Error: {e}")
-    data_ok = False
+    st.error(f"Could not load data files. Make sure the CSVs are in the same folder as this script.\n\nError: {e}")
     st.stop()
 
 # ── Sidebar navigation ────────────────────────────────────────────────────────
@@ -93,7 +84,7 @@ page = st.sidebar.radio(
 )
 st.sidebar.markdown("---")
 st.sidebar.markdown("**Datasets**")
-st.sidebar.markdown("• County Statistics (4,800+ counties)\n• Trump–Biden 2020 Polls\n• Trump–Clinton 2016 Polls\n• NC 2024 Precinct Data")
+st.sidebar.markdown("• County Statistics (4,800+ counties)\n• Trump–Biden 2020 Polls\n• Trump–Clinton 2016 Polls")
 st.sidebar.markdown("---")
 st.sidebar.markdown("*NYU · Group Project · 2025*")
 
@@ -111,9 +102,10 @@ if page == "🏠 Business Case & Data":
     </div>
     """, unsafe_allow_html=True)
 
-    # ── Problem statement ──
+    # Problem statement
     st.markdown('<div class="sec-title">📌 The Business Problem</div>', unsafe_allow_html=True)
     col1, col2 = st.columns([3, 2])
+
     with col1:
         st.markdown("""
         Political campaigns, news organisations, and policy researchers share a common challenge:
@@ -122,11 +114,12 @@ if page == "🏠 Business Case & Data":
         structural forces that drive voting behaviour.
 
         **Our question:** Can we predict the *Republican vote share* in a US county using
-        observable socioeconomic indicators — income, race, education, employment, and geography?
+        observable socioeconomic indicators — income, race, education, and employment?
 
         A linear regression model trained on county-level data from the **2016 and 2020
         presidential elections** gives us a transparent, interpretable answer.
         """)
+
     with col2:
         st.markdown("""
         <div class="card">
@@ -145,16 +138,15 @@ if page == "🏠 Business Case & Data":
 
     st.markdown("---")
 
-    # ── Dataset overview ──
+    # Dataset overview
     st.markdown('<div class="sec-title">📂 Dataset Overview</div>', unsafe_allow_html=True)
-
-    tab1, tab2, tab3, tab4 = st.tabs([
-        "🏘️ County Statistics", "📋 Trump–Biden Polls", "📋 Trump–Clinton Polls", "🌲 NC 2024"
+    tab1, tab2, tab3 = st.tabs([
+        "🏘️ County Statistics", "📋 Trump–Biden 2020 Polls", "📋 Trump–Clinton 2016 Polls"
     ])
 
     with tab1:
         st.markdown(f"**{len(county_df):,} counties across the United States**")
-        st.markdown("Combines voting results (2016 & 2020) with Census demographics.")
+        st.markdown("Combines voting results (2016 & 2020) with US Census demographics.")
         col_a, col_b, col_c = st.columns(3)
         col_a.metric("Counties", f"{len(county_df):,}")
         col_b.metric("States", county_df['state'].nunique())
@@ -164,28 +156,24 @@ if page == "🏠 Business Case & Data":
     with tab2:
         st.markdown(f"**{len(polls_biden):,} poll entries — 2020 presidential race**")
         col_a, col_b = st.columns(2)
-        col_a.metric("Polls", polls_biden['poll_id'].nunique())
-        col_b.metric("States covered", polls_biden['state'].nunique())
+        col_a.metric("Unique Polls", polls_biden['poll_id'].nunique())
+        col_b.metric("States Covered", polls_biden['state'].nunique())
         st.dataframe(polls_biden.head(8), use_container_width=True)
 
     with tab3:
         st.markdown(f"**{len(polls_clinton):,} poll entries — 2016 presidential race**")
         col_a, col_b = st.columns(2)
-        col_a.metric("Polls", polls_clinton['poll_id'].nunique() if 'poll_id' in polls_clinton.columns else "N/A")
-        col_b.metric("States covered", polls_clinton['state'].nunique())
+        has_poll_id = 'poll_id' in polls_clinton.columns
+        col_a.metric("Unique Polls", polls_clinton['poll_id'].nunique() if has_poll_id else "N/A")
+        col_b.metric("States Covered", polls_clinton['state'].nunique())
         st.dataframe(polls_clinton.head(8), use_container_width=True)
 
-    with tab4:
-        st.markdown(f"**{len(nc_df):,} precinct-level records from North Carolina, 2024**")
-        col_a, col_b = st.columns(2)
-        col_a.metric("Precincts", len(nc_df))
-        col_b.metric("Counties", nc_df['county_name'].nunique())
-        st.dataframe(nc_df.head(8), use_container_width=True)
-
     st.markdown("---")
+
+    # Methodology
     st.markdown('<div class="sec-title">🔬 Methodology</div>', unsafe_allow_html=True)
     st.markdown("""
-    1. **Data Cleaning** — drop nulls, normalise column names, engineer the target variable (`pct20_trump`)
+    1. **Data Cleaning** — drop nulls, normalise column names, engineer the target variable
     2. **EDA** — visualise distributions, correlations, and geographic patterns
     3. **Feature Selection** — choose socioeconomic predictors; drop collinear variables
     4. **Model Training** — Ordinary Least Squares Linear Regression (Scikit-Learn)
@@ -206,17 +194,23 @@ elif page == "📊 Data Visualization":
     </div>
     """, unsafe_allow_html=True)
 
-    df = county_df.copy().dropna(subset=['percentage20_Donald_Trump', 'Income',
-                                          'Poverty', 'White', 'Black', 'Unemployment'])
+    df = county_df.copy().dropna(subset=[
+        'percentage20_Donald_Trump', 'percentage16_Donald_Trump',
+        'Income', 'Poverty', 'White', 'Black', 'Unemployment'
+    ])
 
-    # ── Chart 1: Distribution of Trump vote share ──
+    # ── Chart 1: Distribution of Trump vote share ──────────────────────────────
     st.markdown('<div class="sec-title">1 · Distribution of Republican Vote Share (2020)</div>',
                 unsafe_allow_html=True)
     col1, col2 = st.columns([3, 2])
+
     with col1:
         fig, ax = plt.subplots(figsize=(8, 4))
-        ax.hist(df['percentage20_Donald_Trump'], bins=40, color=REP_RED, edgecolor='white', alpha=0.88)
-        ax.axvline(df['percentage20_Donald_Trump'].mean(), color='black', linestyle='--', label=f"Mean = {df['percentage20_Donald_Trump'].mean():.1%}")
+        ax.hist(df['percentage20_Donald_Trump'], bins=40,
+                color=REP_RED, edgecolor='white', alpha=0.88)
+        mean_val = df['percentage20_Donald_Trump'].mean()
+        ax.axvline(mean_val, color='black', linestyle='--',
+                   label=f"Mean = {mean_val:.1%}")
         ax.set_xlabel("Trump Vote Share (2020)", fontsize=12)
         ax.set_ylabel("Number of Counties", fontsize=12)
         ax.set_title("How Republican is a Typical US County?", fontsize=14, fontweight='bold')
@@ -224,27 +218,29 @@ elif page == "📊 Data Visualization":
         ax.legend()
         fig.tight_layout()
         st.pyplot(fig)
+
     with col2:
         st.markdown("""
         **Key Insight**
 
-        The distribution is **right-skewed**, with the majority of counties voting Republican.
-        However, because Democratic support concentrates in high-population urban counties,
-        the national popular vote does not reflect this county-level majority.
+        The distribution is **right-skewed** — most counties vote Republican.
+        However, Democratic support concentrates in high-population urban counties,
+        so the national popular vote does not reflect this county-level majority.
 
         > Most US counties are red — but most US *voters* live in blue counties.
         """)
-        st.metric("Median Trump share", f"{df['percentage20_Donald_Trump'].median():.1%}")
+        st.metric("Median Trump Share", f"{df['percentage20_Donald_Trump'].median():.1%}")
         st.metric("Counties > 60% Trump", f"{(df['percentage20_Donald_Trump'] > 0.6).sum():,}")
 
-    # ── Chart 2: 2016 vs 2020 shift ──
-    st.markdown('<div class="sec-title">2 · Vote Swing: 2016 → 2020</div>', unsafe_allow_html=True)
+    # ── Chart 2: 2016 → 2020 swing ────────────────────────────────────────────
+    st.markdown('<div class="sec-title">2 · Vote Swing: 2016 → 2020</div>',
+                unsafe_allow_html=True)
     df['swing'] = df['percentage20_Donald_Trump'] - df['percentage16_Donald_Trump']
     col1, col2 = st.columns([3, 2])
+
     with col1:
         fig, ax = plt.subplots(figsize=(8, 4))
-        colors = [REP_RED if s > 0 else DEM_BLUE for s in df['swing']]
-        ax.hist(df['swing'], bins=50, color=REP_RED, alpha=0.6, label='Toward Trump')
+        ax.hist(df['swing'], bins=50, color=REP_RED, alpha=0.6)
         ax.axvline(0, color='black', linewidth=1.5, linestyle='--')
         ax.set_xlabel("Change in Republican Share (2016 → 2020)", fontsize=12)
         ax.set_ylabel("Number of Counties", fontsize=12)
@@ -252,6 +248,7 @@ elif page == "📊 Data Visualization":
         ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x:+.0%}"))
         fig.tight_layout()
         st.pyplot(fig)
+
     with col2:
         st.markdown("""
         **Key Insight**
@@ -259,18 +256,17 @@ elif page == "📊 Data Visualization":
         Most counties experienced a **slight shift toward Trump** from 2016 to 2020 —
         even as he lost the national popular vote by a wider margin.
 
-        This reflects a well-documented trend: Republicans made gains in rural and
-        small-town America while losing ground in suburbs and large metros.
+        Republicans made gains in rural and small-town America while losing ground
+        in suburbs and large metros.
         """)
-        moved_r = (df['swing'] > 0.02).sum()
-        moved_d = (df['swing'] < -0.02).sum()
-        st.metric("Counties swung >2% toward Trump", f"{moved_r:,}")
-        st.metric("Counties swung >2% toward Biden", f"{moved_d:,}")
+        st.metric("Counties swung >2% toward Trump", f"{(df['swing'] > 0.02).sum():,}")
+        st.metric("Counties swung >2% toward Biden", f"{(df['swing'] < -0.02).sum():,}")
 
-    # ── Chart 3: Income vs vote share ──
+    # ── Chart 3: Income vs vote share ─────────────────────────────────────────
     st.markdown('<div class="sec-title">3 · Income vs Republican Vote Share</div>',
                 unsafe_allow_html=True)
     col1, col2 = st.columns([3, 2])
+
     with col1:
         fig, ax = plt.subplots(figsize=(8, 4.5))
         sc = ax.scatter(df['Income'], df['percentage20_Donald_Trump'],
@@ -287,6 +283,7 @@ elif page == "📊 Data Visualization":
         ax.legend()
         fig.tight_layout()
         st.pyplot(fig)
+
     with col2:
         corr = df['Income'].corr(df['percentage20_Donald_Trump'])
         st.markdown(f"""
@@ -295,16 +292,17 @@ elif page == "📊 Data Visualization":
         There is a **negative correlation (r = {corr:.2f})** between income and
         Republican vote share at the county level.
 
-        Historically Republicans were the party of higher earners, but this pattern
-        has reversed: lower-income, less-educated rural counties now lean strongly
-        Republican, while high-income urban and suburban counties have moved toward
-        Democrats.
+        The old "Republicans = wealthy" pattern has reversed: lower-income rural
+        counties now lean strongly Republican, while high-income urban and suburban
+        counties have shifted toward Democrats.
         """)
         st.metric("Correlation: Income ↔ Trump%", f"r = {corr:.2f}")
 
-    # ── Chart 4: Poverty & race ──
-    st.markdown('<div class="sec-title">4 · Demographic Breakdown</div>', unsafe_allow_html=True)
+    # ── Chart 4: Poverty & White share scatter ────────────────────────────────
+    st.markdown('<div class="sec-title">4 · Demographic Breakdown</div>',
+                unsafe_allow_html=True)
     col1, col2 = st.columns(2)
+
     with col1:
         fig, ax = plt.subplots(figsize=(6, 4))
         ax.scatter(df['Poverty'], df['percentage20_Donald_Trump'],
@@ -333,11 +331,14 @@ elif page == "📊 Data Visualization":
         fig.tight_layout()
         st.pyplot(fig)
 
-    # ── Chart 5: Correlation heatmap ──
-    st.markdown('<div class="sec-title">5 · Correlation Heatmap</div>', unsafe_allow_html=True)
-    feat_cols = ['percentage20_Donald_Trump', 'Income', 'Poverty', 'ChildPoverty',
-                 'White', 'Black', 'Hispanic', 'Unemployment', 'Professional',
-                 'Service', 'Construction', 'Production']
+    # ── Chart 5: Correlation heatmap ──────────────────────────────────────────
+    st.markdown('<div class="sec-title">5 · Correlation Heatmap</div>',
+                unsafe_allow_html=True)
+    feat_cols = [
+        'percentage20_Donald_Trump', 'Income', 'Poverty', 'ChildPoverty',
+        'White', 'Black', 'Hispanic', 'Unemployment',
+        'Professional', 'Service', 'Construction', 'Production'
+    ]
     corr_matrix = df[feat_cols].corr()
     fig, ax = plt.subplots(figsize=(11, 7))
     mask = np.triu(np.ones_like(corr_matrix, dtype=bool))
@@ -347,23 +348,25 @@ elif page == "📊 Data Visualization":
     fig.tight_layout()
     st.pyplot(fig)
     st.markdown("""
-    The heatmap confirms our feature selection intuition:  
     **White share, Production workers, Construction workers** → positively correlated with Trump vote  
     **Black share, Income, Hispanic share, Professional workers** → negatively correlated
     """)
 
-    # ── Chart 6: Polling accuracy ──
-    st.markdown('<div class="sec-title">6 · How Accurate Were the 2020 Polls?</div>',
+    # ── Chart 6: 2020 state-level polling averages ────────────────────────────
+    st.markdown('<div class="sec-title">6 · Average Trump Poll Numbers by State (2020)</div>',
                 unsafe_allow_html=True)
 
     trump_polls = polls_biden[polls_biden['candidate_name'].str.contains('Trump', na=False)].copy()
-    state_avg = trump_polls.groupby('state')['pct'].mean().reset_index()
-    state_avg.columns = ['state', 'polled_trump_pct']
+    state_avg = (trump_polls.groupby('state')['pct']
+                             .mean()
+                             .reset_index()
+                             .rename(columns={'pct': 'polled_trump_pct'})
+                             .sort_values('polled_trump_pct', ascending=True)
+                             .tail(20))
 
     fig, ax = plt.subplots(figsize=(12, 5))
-    state_avg_sorted = state_avg.sort_values('polled_trump_pct', ascending=True).tail(20)
-    colors = [REP_RED if p > 50 else DEM_BLUE for p in state_avg_sorted['polled_trump_pct']]
-    ax.barh(state_avg_sorted['state'], state_avg_sorted['polled_trump_pct'],
+    colors = [REP_RED if p > 50 else DEM_BLUE for p in state_avg['polled_trump_pct']]
+    ax.barh(state_avg['state'], state_avg['polled_trump_pct'],
             color=colors, edgecolor='white', alpha=0.88)
     ax.axvline(50, color='black', linestyle='--', linewidth=1.2)
     ax.set_xlabel("Average Polled Trump % (2020)", fontsize=12)
@@ -384,15 +387,17 @@ elif page == "🤖 Prediction Model":
     </div>
     """, unsafe_allow_html=True)
 
-    # ── Prepare data ──
-    features = ['Income', 'Poverty', 'White', 'Black', 'Hispanic',
-                'Unemployment', 'Professional', 'Service',
-                'Construction', 'Production', 'MeanCommute']
-    target   = 'percentage20_Donald_Trump'
+    # ── Prepare & train ───────────────────────────────────────────────────────
+    FEATURES = [
+        'Income', 'Poverty', 'White', 'Black', 'Hispanic',
+        'Unemployment', 'Professional', 'Service',
+        'Construction', 'Production', 'MeanCommute'
+    ]
+    TARGET = 'percentage20_Donald_Trump'
 
-    model_df = county_df[features + [target, 'county', 'state']].dropna()
-    X = model_df[features]
-    y = model_df[target]
+    model_df = county_df[FEATURES + [TARGET, 'county', 'state']].dropna()
+    X = model_df[FEATURES]
+    y = model_df[TARGET]
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
@@ -407,14 +412,15 @@ elif page == "🤖 Prediction Model":
     r2  = r2_score(y_test, y_pred)
     mae = mean_absolute_error(y_test, y_pred)
 
-    # ── Model performance ──
+    # ── Performance metrics ───────────────────────────────────────────────────
     st.markdown('<div class="sec-title">📈 Model Performance</div>', unsafe_allow_html=True)
     c1, c2, c3 = st.columns(3)
-    c1.metric("R² Score", f"{r2:.3f}", help="Proportion of variance explained")
+    c1.metric("R² Score", f"{r2:.3f}", help="Proportion of variance explained by the model")
     c2.metric("Mean Abs. Error", f"{mae:.1%}", help="Average prediction error in percentage points")
-    c3.metric("Training samples", f"{len(X_train):,}")
+    c3.metric("Training Samples", f"{len(X_train):,}")
 
     col1, col2 = st.columns(2)
+
     with col1:
         fig, ax = plt.subplots(figsize=(6, 5))
         ax.scatter(y_test, y_pred, alpha=0.35, s=20, color=REP_RED)
@@ -441,87 +447,76 @@ elif page == "🤖 Prediction Model":
         fig.tight_layout()
         st.pyplot(fig)
 
-    # ── Feature importance ──
+    # ── Feature importance ────────────────────────────────────────────────────
     st.markdown('<div class="sec-title">🔍 Feature Importance (Standardised Coefficients)</div>',
                 unsafe_allow_html=True)
 
-    coeff_df = pd.DataFrame({
-        'Feature': features,
-        'Coefficient': model.coef_
-    }).sort_values('Coefficient')
+    coeff_df = (pd.DataFrame({'Feature': FEATURES, 'Coefficient': model.coef_})
+                  .sort_values('Coefficient'))
 
     fig, ax = plt.subplots(figsize=(9, 5))
     colors = [REP_RED if c > 0 else DEM_BLUE for c in coeff_df['Coefficient']]
-    ax.barh(coeff_df['Feature'], coeff_df['Coefficient'], color=colors, edgecolor='white', alpha=0.88)
+    ax.barh(coeff_df['Feature'], coeff_df['Coefficient'],
+            color=colors, edgecolor='white', alpha=0.88)
     ax.axvline(0, color='black', linewidth=1.2)
     ax.set_xlabel("Standardised Coefficient", fontsize=12)
     ax.set_title("What Drives the Republican Vote Share?", fontsize=14, fontweight='bold')
-    ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x:+.0%}"))
     fig.tight_layout()
     st.pyplot(fig)
 
     st.markdown("""
     **Interpretation:**
-    - 🔴 **Positive** (pushes toward more Republican): higher White share, Production/Construction workers
-    - 🔵 **Negative** (pushes toward less Republican): higher Black share, Income, Professional workers, Hispanic share
+    - 🔴 **Positive** (more Republican): higher White share, Production & Construction workers
+    - 🔵 **Negative** (more Democratic): higher Black share, Income, Professional workers, Hispanic share
     """)
 
     st.markdown("---")
 
-    # ── Interactive predictor ──
+    # ── Interactive predictor ─────────────────────────────────────────────────
     st.markdown('<div class="sec-title">🎮 Interactive County Predictor</div>',
                 unsafe_allow_html=True)
     st.markdown("Adjust the sliders to represent a hypothetical county and see the predicted Republican vote share.")
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        income       = st.slider("Median Income ($)", 20000, 130000, 55000, step=1000)
-        poverty      = st.slider("Poverty Rate (%)", 0, 50, 15)
-        white_share  = st.slider("White Population (%)", 0, 100, 70)
-        black_share  = st.slider("Black Population (%)", 0, 100, 12)
+        income       = st.slider("Median Income ($)",        20000, 130000, 55000, step=1000)
+        poverty      = st.slider("Poverty Rate (%)",         0,     50,     15)
+        white_share  = st.slider("White Population (%)",     0,     100,    70)
+        black_share  = st.slider("Black Population (%)",     0,     100,    12)
     with col2:
-        hispanic     = st.slider("Hispanic Population (%)", 0, 100, 10)
-        unemployment = st.slider("Unemployment Rate (%)", 0, 25, 6)
-        professional = st.slider("Professional Workers (%)", 10, 60, 30)
-        service      = st.slider("Service Workers (%)", 5, 50, 17)
+        hispanic     = st.slider("Hispanic Population (%)",  0,     100,    10)
+        unemployment = st.slider("Unemployment Rate (%)",    0,     25,     6)
+        professional = st.slider("Professional Workers (%)", 10,    60,     30)
+        service      = st.slider("Service Workers (%)",      5,     50,     17)
     with col3:
-        construction = st.slider("Construction Workers (%)", 0, 30, 8)
-        production   = st.slider("Production Workers (%)", 0, 40, 10)
-        commute      = st.slider("Mean Commute (min)", 5, 60, 25)
+        construction = st.slider("Construction Workers (%)", 0,     30,     8)
+        production   = st.slider("Production Workers (%)",   0,     40,     10)
+        commute      = st.slider("Mean Commute (min)",       5,     60,     25)
 
-    input_vals = np.array([[income, poverty, white_share, black_share, hispanic,
-                             unemployment, professional, service,
-                             construction, production, commute]])
-    input_sc = scaler.transform(input_vals)
-    pred = model.predict(input_sc)[0]
-    pred = np.clip(pred, 0, 1)
+    input_arr = np.array([[income, poverty, white_share, black_share, hispanic,
+                           unemployment, professional, service,
+                           construction, production, commute]])
+    pred = float(np.clip(model.predict(scaler.transform(input_arr))[0], 0, 1))
 
     st.markdown("---")
     col_pred, col_viz = st.columns([1, 2])
+
     with col_pred:
-        if pred > 0.5:
-            st.markdown(f"""
-            <div class="card red" style="text-align:center; font-size:1.4rem;">
-                <div style="font-size:2.5rem; font-weight:800; color:#c0392b;">{pred:.1%}</div>
-                <div>Predicted Republican Share</div>
-                <br>
-                <div style="font-size:1rem; color:#555;">🔴 Republican-leaning county</div>
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.markdown(f"""
-            <div class="card" style="text-align:center; font-size:1.4rem;">
-                <div style="font-size:2.5rem; font-weight:800; color:#1a6fb5;">{pred:.1%}</div>
-                <div>Predicted Republican Share</div>
-                <br>
-                <div style="font-size:1rem; color:#555;">🔵 Democratic-leaning county</div>
-            </div>
-            """, unsafe_allow_html=True)
+        colour = "#c0392b" if pred > 0.5 else "#1a6fb5"
+        label  = "🔴 Republican-leaning county" if pred > 0.5 else "🔵 Democratic-leaning county"
+        card_class = "card red" if pred > 0.5 else "card"
+        st.markdown(f"""
+        <div class="{card_class}" style="text-align:center;">
+            <div style="font-size:2.5rem; font-weight:800; color:{colour};">{pred:.1%}</div>
+            <div style="font-size:1rem; margin-top:4px;">Predicted Republican Share</div>
+            <br>
+            <div style="font-size:1rem; color:#555;">{label}</div>
+        </div>
+        """, unsafe_allow_html=True)
 
     with col_viz:
-        fig, ax = plt.subplots(figsize=(7, 1.5))
-        ax.barh(['Republican', 'Democratic'],
-                [pred, 1 - pred],
+        fig, ax = plt.subplots(figsize=(7, 1.8))
+        ax.barh(['Republican', 'Democratic'], [pred, 1 - pred],
                 color=[REP_RED, DEM_BLUE], alpha=0.9)
         ax.set_xlim(0, 1)
         ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f"{x:.0%}"))
@@ -531,15 +526,19 @@ elif page == "🤖 Prediction Model":
         fig.tight_layout()
         st.pyplot(fig)
 
-    # ── Similar real counties ──
-    st.markdown("**📍 Real counties with similar demographics:**")
-    model_df['predicted'] = model.predict(scaler.transform(model_df[features]))
-    similar = model_df[np.abs(model_df['predicted'] - pred) < 0.05][['county', 'state',
-                                                                        target, 'Income', 'Poverty']].head(5)
+    # ── Similar real counties ─────────────────────────────────────────────────
+    st.markdown("**📍 Real counties with similar predicted vote share:**")
+    model_df = model_df.copy()
+    model_df['predicted'] = model.predict(scaler.transform(model_df[FEATURES]))
+    similar = (model_df[np.abs(model_df['predicted'] - pred) < 0.05]
+               [['county', 'state', TARGET, 'Income', 'Poverty']]
+               .head(5))
+
     if len(similar):
+        similar = similar.copy()
         similar.columns = ['County', 'State', 'Actual Trump %', 'Income', 'Poverty %']
         similar['Actual Trump %'] = similar['Actual Trump %'].map(lambda x: f"{x:.1%}")
         similar['Income'] = similar['Income'].map(lambda x: f"${x:,.0f}")
         st.dataframe(similar, use_container_width=True, hide_index=True)
     else:
-        st.info("No closely matching counties found for these inputs.")
+        st.info("No closely matching counties found for these slider values — try adjusting them.")
