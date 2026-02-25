@@ -133,7 +133,8 @@ st.sidebar.markdown("---")
 st.sidebar.markdown("**Datasets**")
 st.sidebar.markdown("• County Statistics (4,800+ counties)\n• Trump–Biden 2020 Polls\n• Trump–Clinton 2016 Polls")
 st.sidebar.markdown("---")
-st.sidebar.markdown("*NYU · Group Project · 2025*")
+st.sidebar.markdown("*NYU · Group Project · 2026*")
+st.sidebar.markdown("*NYU · Group Project · Aimee P, Nicole Z, Olivia P*")
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
