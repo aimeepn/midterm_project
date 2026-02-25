@@ -10,7 +10,6 @@ from sklearn.preprocessing import StandardScaler
 import warnings
 warnings.filterwarnings("ignore")
 
-# ── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="ElectionIQ · Predicting the Vote",
     page_icon="🗳️",
@@ -18,12 +17,11 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ── Colour palette ────────────────────────────────────────────────────────────
+# Colour  
 DEM_BLUE = "#1a6fb5"
 REP_RED  = "#c0392b"
 NEUTRAL  = "#6c757d"
 
-# ── Custom CSS ────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
 .hero {
@@ -108,7 +106,7 @@ predicts what it does. This matters in a political context where understanding
 the drivers is just as valuable as the prediction itself.
 """)
 
-# ── Data loading ──────────────────────────────────────────────────────────────
+#  Data loading 
 @st.cache_data
 def load_data():
     county     = pd.read_csv("county_statistics.csv")
@@ -122,7 +120,7 @@ except Exception as e:
     st.error(f"Could not load data files. Make sure the CSVs are in the same folder as this script.\n\nError: {e}")
     st.stop()
 
-# ── Sidebar navigation ────────────────────────────────────────────────────────
+#  Sidebar 
 st.sidebar.markdown("## 🗳️ ElectionIQ")
 st.sidebar.markdown("---")
 page = st.sidebar.radio(
@@ -137,9 +135,7 @@ st.sidebar.markdown("*NYU · Group Project · 2026*")
 st.sidebar.markdown("*NYU · Group Project · Aimee P, Nicole Z, Olivia P*")
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# PAGE 1 – Business Case & Data
-# ═══════════════════════════════════════════════════════════════════════════════
+
 if page == "🏠 Business Case & Data":
 
     st.markdown("""
@@ -230,9 +226,7 @@ if page == "🏠 Business Case & Data":
     """)
 
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# PAGE 2 – Data Visualization
-# ═══════════════════════════════════════════════════════════════════════════════
+# data viz
 elif page == "📊 Data Visualization":
 
     st.markdown("""
@@ -247,7 +241,7 @@ elif page == "📊 Data Visualization":
         'Income', 'Poverty', 'White', 'Black', 'Unemployment'
     ])
 
-    # ── Chart 1: Distribution of Trump vote share ──────────────────────────────
+    # Distribution of Trump vote share 
     st.markdown('<div class="sec-title">1 · Distribution of Republican Vote Share (2020)</div>',
                 unsafe_allow_html=True)
     col1, col2 = st.columns([3, 2])
@@ -310,7 +304,7 @@ elif page == "📊 Data Visualization":
         st.metric("Counties swung >2% toward Trump", f"{(df['swing'] > 0.02).sum():,}")
         st.metric("Counties swung >2% toward Biden", f"{(df['swing'] < -0.02).sum():,}")
 
-    # ── Chart 3: Income vs vote share ─────────────────────────────────────────
+    # Income vs vote share 
     st.markdown('<div class="sec-title">3 · Income vs Republican Vote Share</div>',
                 unsafe_allow_html=True)
     col1, col2 = st.columns([3, 2])
@@ -346,7 +340,7 @@ elif page == "📊 Data Visualization":
         """)
         st.metric("Correlation: Income ↔ Trump%", f"r = {corr:.2f}")
 
-    # ── Chart 4: Poverty & White share scatter ────────────────────────────────
+    # Poverty & White share scatter 
     st.markdown('<div class="sec-title">4 · Demographic Breakdown</div>',
                 unsafe_allow_html=True)
     col1, col2 = st.columns(2)
@@ -379,7 +373,7 @@ elif page == "📊 Data Visualization":
         fig.tight_layout()
         st.pyplot(fig)
 
-    # ── Chart 5: Correlation heatmap ──────────────────────────────────────────
+    # Correlation heatmap 
     st.markdown('<div class="sec-title">5 · Correlation Heatmap</div>',
                 unsafe_allow_html=True)
     feat_cols = [
@@ -400,7 +394,7 @@ elif page == "📊 Data Visualization":
     **Black share, Income, Hispanic share, Professional workers** → negatively correlated
     """)
 
-    # ── Chart 6: 2020 state-level polling averages ────────────────────────────
+    # 2020 state-level polling averages 
     st.markdown('<div class="sec-title">6 · Average Trump Poll Numbers by State (2020)</div>',
                 unsafe_allow_html=True)
 
@@ -422,9 +416,6 @@ elif page == "📊 Data Visualization":
     fig.tight_layout()
     st.pyplot(fig)
 
-# ═══════════════════════════════════════════════════════════════════════════════
-# PAGE 3 – Prediction Model
-# ═══════════════════════════════════════════════════════════════════════════════
 elif page == "🤖 Prediction Model":
 
     st.markdown("""
@@ -434,7 +425,7 @@ elif page == "🤖 Prediction Model":
     </div>
     """, unsafe_allow_html=True)
 
-    # ── Prepare & train ───────────────────────────────────────────────────────
+    # prepare & train 
     FEATURES = [
         'Income', 'Poverty', 'White', 'Black', 'Hispanic',
         'Unemployment', 'Professional', 'Service',
@@ -459,7 +450,7 @@ elif page == "🤖 Prediction Model":
     r2  = r2_score(y_test, y_pred)
     mae = mean_absolute_error(y_test, y_pred)
 
-    # ── Performance metrics ───────────────────────────────────────────────────
+    # metrics
     st.markdown('<div class="sec-title">📈 Model Performance</div>', unsafe_allow_html=True)
     c1, c2, c3 = st.columns(3)
     c1.metric("R² Score", f"{r2:.3f}", help="Proportion of variance explained by the model")
@@ -494,7 +485,6 @@ elif page == "🤖 Prediction Model":
         fig.tight_layout()
         st.pyplot(fig)
 
-    # ── Feature importance ────────────────────────────────────────────────────
     st.markdown('<div class="sec-title">🔍 Feature Importance (Standardised Coefficients)</div>',
                 unsafe_allow_html=True)
 
@@ -519,7 +509,7 @@ elif page == "🤖 Prediction Model":
 
     st.markdown("---")
 
-    # ── Interactive predictor ─────────────────────────────────────────────────
+    #  Interactive predictor 
     st.markdown('<div class="sec-title">🎮 Interactive County Predictor</div>',
                 unsafe_allow_html=True)
     st.markdown("Adjust the sliders to represent a hypothetical county and see the predicted Republican vote share.")
@@ -573,7 +563,7 @@ elif page == "🤖 Prediction Model":
         fig.tight_layout()
         st.pyplot(fig)
 
-    # ── Similar real counties ─────────────────────────────────────────────────
+    # similar countries
     st.markdown("**📍 Real counties with similar predicted vote share:**")
     model_df = model_df.copy()
     model_df['predicted'] = model.predict(scaler.transform(model_df[FEATURES]))
